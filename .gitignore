@@ -1,0 +1,90 @@
+# ============================================================
+# OS generated files
+# ============================================================
+
+# macOS
+.DS_Store
+._*
+.Spotlight-V100
+.Trashes
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+.nfs*
+
+# ============================================================
+# Sensitive files
+# ============================================================
+.env
+.env.local
+.env.*
+.env.*.local
+*.pem
+*.key
+id_rsa
+id_ed25519
+.netrc
+credentials.json
+
+# ============================================================
+# Editor temporary files
+# ============================================================
+
+# Vim/Neovim
+*.swp
+*.swo
+*.swn
+.netrwhist
+Session.vim
+
+# VS Code
+.vscode/*.log
+.vscode/extensions.json
+
+# Visual Studio
+.vs/
+*.suo
+*.user
+*.sln.docstates
+*.ncb
+*.aps
+
+# JetBrains
+.idea/
+*.iml
+
+# Emacs
+\#*\#
+.\#*
+*.elc
+
+# Sublime Text
+*.tmlanguage.cache
+*.tmPreferences.cache
+*.stTheme.cache
+*.sublime-workspace
+
+# ============================================================
+# Python
+# ============================================================
+__pycache__/
+*.pyc
+*.pyo
+venv/
+.venv/
+
+# ============================================================
+# Logs / Temp files
+# ============================================================
+*.log
+*.tmp
+.cache/
