@@ -19,6 +19,12 @@ param(
 # Helpers
 # ---------------------------------------------------------------------------
 
+# Print an error and stop the script.
+function Stop-Script([string]$Message) {
+    Write-Error $Message
+    exit 1
+}
+
 # Run `net use` and report success plus captured output.
 function Invoke-NetUse {
     param([Parameter(ValueFromRemainingArguments)][string[]]$Arguments)
@@ -170,16 +176,14 @@ function Select-Shares {
 # Accept the server IP / hostname only (no leading backslashes).
 $Server = $Server.Trim().TrimStart('\')
 if ($Server -match '\\') {
-    Write-Error "Enter the server IP/hostname only, e.g.  .\smb.ps1 192.168.1.1"
-    exit 1
+    Stop-Script "Enter the server IP/hostname only, e.g.  .\smb.ps1 192.168.1.1"
 }
 $ServerUnc = "\\$Server"
 
 # The Workstation service handles network drive mapping; net use fails without it.
 $ws = Get-Service LanmanWorkstation -ErrorAction SilentlyContinue
 if ($ws.Status -ne 'Running') {
-    Write-Error "Workstation service (LanmanWorkstation) is not running.`nStart it from an elevated PowerShell:  Start-Service LanmanWorkstation"
-    exit 1
+    Stop-Script "Workstation service (LanmanWorkstation) is not running.`nStart it from an elevated PowerShell:  Start-Service LanmanWorkstation"
 }
 
 $cred     = Get-Credential -Message "Enter credentials"
@@ -187,15 +191,14 @@ $username = $cred.UserName
 $password = $cred.GetNetworkCredential().Password
 
 # Discover shares (authenticates via IPC$).
+# @() guards against PowerShell collapsing a single returned share into a scalar string.
 try {
-    $shares = Get-ServerShares -ServerUnc $ServerUnc -Username $username -Password $password
+    $shares = @(Get-ServerShares -ServerUnc $ServerUnc -Username $username -Password $password)
 } catch {
-    Write-Error $_
-    exit 1
+    Stop-Script "$_"
 }
 if (-not $shares) {
-    Write-Error "Connected to $ServerUnc, but no browsable disk shares were found."
-    exit 1
+    Stop-Script "Connected to $ServerUnc, but no browsable disk shares were found."
 }
 
 # Current state and resources for the menu.
@@ -204,14 +207,15 @@ $mountedOn  = @(foreach ($s in $shares) {
     $unc = "$ServerUnc\$s".ToLower()
     if ($mountedMap.ContainsKey($unc)) { $mountedMap[$unc] } else { $null }
 })
-$available  = Get-FreeDriveLetters
+$available  = @(Get-FreeDriveLetters)
 
-$result = Select-Shares -Items $shares -Header "Shares on $ServerUnc" -MountedOn $mountedOn -Available $available
-if ($null -eq $result) {
+$selection = Select-Shares -Items $shares -Header "Shares on $ServerUnc" -MountedOn $mountedOn -Available $available
+if ($null -eq $selection) {
     Write-Host ""
     Write-Host "Cancelled." -ForegroundColor Yellow
     exit 0
 }
+$checked = @($selection)   # guard against single-element collapse, mirroring $shares
 
 Write-Host ""
 
@@ -220,7 +224,7 @@ $next    = 0
 $changed = $false
 for ($i = 0; $i -lt $shares.Count; $i++) {
     $wasMounted = [bool]$mountedOn[$i]
-    $nowChecked = $result[$i]
+    $nowChecked = $checked[$i]
     $uncPath    = "$ServerUnc\$($shares[$i])"
 
     if ($wasMounted -and -not $nowChecked) {
