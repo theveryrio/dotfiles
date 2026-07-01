@@ -1,0 +1,3 @@
+# ~/.byobu/status
+tmux_left="logo distro release"
+tmux_right="#disk_io #custom #entropy #raid #reboot_required #updates_available #apport #services #mail #users #fan_speed #cpu_temp #battery #wifi_quality #processes #load_average #cpu_count #cpu_freq #memory #swap #disk #network #uptime date time"
